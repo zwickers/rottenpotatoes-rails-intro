@@ -11,12 +11,30 @@ class MoviesController < ApplicationController
   end
 
   def index
-    order_by = params[:order]
+    # if a new ordering was selected, do that one
+    if params[:order]
+      order_by = params[:order]
+      session[:order] = params[:order]
+    # otherwise do the ordering that was previously picked, by checking the cookies
+    else 
+      order_by = session[:order]
+    end
+
+    # use this to display all unique rating in the checkboxes in the index haml view
     @all_ratings = Movie.available_ratings
+
+    # if different ratings were selected, do those
     if params[:ratings]
       @selected_ratings = params[:ratings].keys
+      session[:selected_ratings] = @selected_ratings
+    # otherwise, just filter based on the previous ratings
     else
-      @selected_ratings = []
+      if session[:selected_ratings]
+        @selected_ratings = session[:selected_ratings]
+      # first time a user views the page
+      else
+        @selected_ratings = []
+      end
     end
     @movies = Movie.with_ratings(@selected_ratings).order(order_by)
   end
